@@ -4,12 +4,16 @@ public class SubwayDirections
 {
     public static Dictionary<string, Station> Stations = new Dictionary<string, Station>();
 
+    public int CurrentLine = -999;
     static void Main(string[] args)
     {
         Init();
-        Console.WriteLine("출발 역");
+        Console.Write("출발 역 : ");
         string StartName = Console.ReadLine();
-        FindStationInfo(StartName);
+        Console.Write("도착 역 : ");
+        string EndName = Console.ReadLine();
+
+        FindShortPath(StartName, EndName);
     }
 
     private static void FindStationInfo(string stationName)
@@ -102,6 +106,80 @@ public class SubwayDirections
                 station.AddStationData(stations[i+1].Replace(" ", ""),segmentTime[i]);
             }
         }
+    }
 
+    private static void FindShortPath(string inputStartStation, string inputEndStation)
+    {
+        string startFindStation = inputStartStation.Replace(" ", "");
+        string endFindStation = inputEndStation.Replace(" ", "");
+
+        if (!Stations.ContainsKey(startFindStation))
+        {
+            Console.WriteLine("출발 역이 존재하지 않는 역입니다.");
+            return;
+        }
+        if (!Stations.ContainsKey(endFindStation))
+        {
+            Console.WriteLine("도착 역이 존재하지 않는 역입니다.");
+            return;
+        }
+
+        PriorityQueue<string, int> queue = new PriorityQueue<string, int>();
+        Dictionary<string, int> minTime = new Dictionary<string, int>();
+        Dictionary<string, string> previous = new Dictionary<string, string>();
+
+        foreach (string stationName in Stations.Keys)
+        {
+            minTime[stationName] = int.MaxValue;
+        }
+
+        minTime[startFindStation] = 0;
+        queue.Enqueue(startFindStation, 0);
+
+        while (queue.Count > 0)
+        {
+            string currentStationName = queue.Dequeue();
+            Station currentStation = Stations[currentStationName];
+
+            if(currentStationName.Equals(endFindStation))
+            {
+                List<string> path = new List<string>();
+                string current = endFindStation;
+                path.Add(current);
+
+                while (previous.ContainsKey(current))
+                {
+                    current = previous[current];
+                    path.Add(current);
+                }
+
+                path.Reverse();
+                Console.WriteLine($"[탐색결과], {startFindStation} -> {endFindStation}");
+                Console.Write("이동경로 : ");
+                foreach (string station in path)
+                {
+                    Console.Write(station);
+
+                    if (station != path[^1])
+                    {
+                        Console.Write("->");
+                    }
+                }
+                Console.WriteLine($"\n총 소요 시간 : {minTime[endFindStation]/60}분 {minTime[endFindStation]%60}초");
+            }
+
+            foreach(StationData next in currentStation.StationDatas)
+            {
+                int newTime = minTime[currentStationName] + next.SegmentTime;
+
+                if(newTime < minTime[next.To])
+                {
+                    minTime[next.To] = newTime;
+                    previous[next.To] = currentStationName;
+                    queue.Enqueue(next.To, newTime);
+                }
+            }
+
+        }
     }
 }
