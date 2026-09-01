@@ -1,33 +1,48 @@
-﻿public class Station
+﻿public struct StationData
 {
-    public string Name;
     public string To;
-    public string From;
-    public int[] Lines; 
-    public int[] SegmentTimes; // 다음역 시간, 이전역 시간
+    public int SegmentTime;
 
-    public Station(string to, string from, int[] lines, int[] segmentTimes)
+    public StationData(string to, int segmentTime)
     {
         To = to;
-        From = from;
-        Lines = lines;
-        SegmentTimes = segmentTimes;
+        SegmentTime = segmentTime;
+    }
+}
+
+public class Station
+{
+    public int[] Lines;
+    public List<StationData> StationDatas = new();
+
+    public Station(int line)
+    {
+        Lines = [line];
+    }
+
+    public void AddStationData(string to, int segmentTime)
+    {
+        StationDatas.Add(new StationData(to, segmentTime));
     }
 
     public void AddLine(int line)
     {
-        if(Lines.Length == 0 || Lines == null) return;
+        if (Lines.Length == 0 || Lines == null)
+        {
+            Lines = [line];
+            return;
+        }
+
+        if (Lines.Contains(line)) return;
 
         int[] lines = new int[Lines.Length + 1];
 
-        for (int i = 0; i < lines.Length; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
-            if (i == Lines.Length)
-            {
-                lines[i] = line;
-                break;
-            }
             lines[i] = Lines[i];
         }
+
+        lines[^1] = line;
+        Lines = lines;
     }
 }
